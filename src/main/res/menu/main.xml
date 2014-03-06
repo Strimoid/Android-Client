@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:id="@+id/not_logged_in" >
+        <item
+            android:id="@+id/action_login"
+            android:icon="@drawable/ic_login"
+            android:orderInCategory="90"
+            android:showAsAction="always"
+            android:title="Logowanie"/>
+    </group>
+
+    <group
+        android:id="@+id/logged_in"
+        android:visible="false" >
+    </group>
+
+    <item android:id="@+id/action_settings"
+        android:title="Ustawienia"
+        android:orderInCategory="100"
+        android:showAsAction="never" />
+
+</menu>

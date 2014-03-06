@@ -1,0 +1,30 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:+'
+    }
+}
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.2"
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 19
+    }
+}
+
+dependencies {
+	compile 'com.android.support:support-v4:19.0.1'
+    compile 'com.koushikdutta.ion:ion:1.2.4'
+    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.github.chrisbanes.actionbarpulltorefresh:library:+'
+}

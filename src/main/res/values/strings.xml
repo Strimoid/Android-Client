@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Strimoid</string>
+    <string name="title_content_detail">Treść</string>
+    <string name="authenticator_activity">Logowanie</string>
+
+</resources>
