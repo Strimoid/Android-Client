@@ -42,15 +42,19 @@ public class OAuth2 implements AsyncHttpClientMiddleware, Serializable {
     }
 
     private void getToken() {
-        mAccountManager.getAuthToken(mAccount, "access", null, true, new AccountManagerCallback<Bundle>() {
-            @Override
-            public void run(AccountManagerFuture<Bundle> future) {
-                try {
-                    Bundle bundle = future.getResult();
-                    mAccessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-                } catch (Exception e) {}
-            }
-        }, null);
+        mAccessToken = mAccountManager.peekAuthToken(mAccount, "access");
+
+        if (mAccessToken == null || mAccessToken.isEmpty()) {
+            mAccountManager.getAuthToken(mAccount, "access", null, true, new AccountManagerCallback<Bundle>() {
+                @Override
+                public void run(AccountManagerFuture<Bundle> future) {
+                    try {
+                        Bundle bundle = future.getResult();
+                        mAccessToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+                    } catch (Exception e) {}
+                }
+            }, null);
+        }
     }
 
     private void invalidateToken() {
@@ -59,7 +63,7 @@ public class OAuth2 implements AsyncHttpClientMiddleware, Serializable {
 
     @Override
     public Cancellable getSocket(GetSocketData data) {
-        if (mAccessToken != null && !TextUtils.isEmpty(mAccessToken))
+        if (mAccessToken != null && !mAccessToken.isEmpty())
             data.request.addHeader("Authorization", "Bearer " + mAccessToken);
 
         return null;
