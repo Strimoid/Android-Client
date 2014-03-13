@@ -6,6 +6,11 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -18,27 +23,36 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.koushikdutta.async.future.Cancellable;
 import com.koushikdutta.async.http.AsyncHttpClientMiddleware;
 import com.koushikdutta.ion.Ion;
 import com.koushikdutta.ion.Loader;
 
+import java.io.IOException;
 import java.util.Locale;
 
 import pl.strimoid.lara.R;
 import pl.strimoid.lara.fragments.ContentListFragment;
 import pl.strimoid.lara.fragments.EntryListFragment;
+import pl.strimoid.lara.gcm.Gcm;
 import pl.strimoid.lara.utils.OAuth2;
 
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
+
+    public static final String API_URL = "http://api.strimoid.pl";
 
     private AccountManager mAccountManager;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private OAuth2 mOAuth2;
-    private boolean mLoggedIn = false;
+    private Gcm mGcm;
 
+    private boolean mLoggedIn = false;
     private boolean mTwoPane;
+    private String regid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,12 +89,29 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         if (savedInstanceState != null)
             restoreInstanceState(savedInstanceState);
 
+        // Find Strimoid accounts
         mAccountManager = AccountManager.get(this);
         Account accounts[] = mAccountManager.getAccountsByType("pl.strimoid");
 
         // Setup middleware to deal with OAuth2
         if (accounts.length == 1 && !mLoggedIn)
             setupOAuth2(accounts[0]);
+
+        // Setup GCM if device has GPS installed
+        if (checkPlayServices())
+            mGcm = new Gcm(getApplicationContext());
+        else
+            Log.i("Strimoid", "No valid Google Play Services APK found.");
+
+        // Register device registration id to get notifications
+        if (mGcm != null && mLoggedIn)
+            mGcm.sendRegistrationIdToBackend();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkPlayServices();
     }
 
     private void restoreInstanceState(Bundle inState) {
@@ -169,6 +200,27 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         Ion.getDefault(getApplicationContext()).getHttpClient().insertMiddleware(oAuth2);
 
         mLoggedIn = true;
+    }
+
+    /**
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
+     */
+    private boolean checkPlayServices() {
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                GooglePlayServicesUtil.getErrorDialog(resultCode, this, 9000).show();
+            } else {
+                Log.i("strimoid", "This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+
+        return true;
     }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
