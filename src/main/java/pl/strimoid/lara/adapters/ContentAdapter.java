@@ -71,7 +71,9 @@ public class ContentAdapter extends ArrayAdapter<JsonObject> {
         }
 
         holder.title.setText(content.get("title").getAsString());
-        holder.description.setText(content.get("description").getAsString());
+
+        if (!content.get("description").isJsonNull())
+            holder.description.setText(content.get("description").getAsString());
 
         holder.uv.setText("  ▲  " + content.get("uv").getAsString());
         holder.dv.setText("  ▼  " + content.get("dv").getAsString());
