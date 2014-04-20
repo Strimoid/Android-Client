@@ -48,7 +48,6 @@ public class ContentAdapter extends ArrayAdapter<JsonObject> {
             view.setTag(holder);
         }
 
-
         // we're near the end of the list adapter, so load more items
         if (position >= getCount() - 3)
             mLoadable.load();
